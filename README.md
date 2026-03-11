@@ -10,6 +10,10 @@ Reusable OpenClaw skill for restoring and running the A-share stock-picking work
 
 ## HOW TO INSTALL
 
+Natural language template for Codex:
+
+`Read https://raw.githubusercontent.com/sontjer/stock-picking-pipeline-skill/refs/heads/main/skill/SKILL.md, install the skill into ~/.openclaw/skills/stock-picking-pipeline, and verify the required dependencies still exist.`
+
 1. Clone this repository:
 ```bash
 git clone https://github.com/sontjer/stock-picking-pipeline-skill.git
