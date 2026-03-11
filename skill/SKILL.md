@@ -1,6 +1,6 @@
 ---
 name: stock-picking-pipeline
-description: Reusable A-share stock-picking workflow. Use when the user wants to execute stock picking, generate 5 stock codes, run the Kokoo to Dodoo handoff, sync selected stocks to GitHub, or restore the full stock-picking pipeline after reinstalling skills.
+description: Reusable A-share stock-picking workflow. Use when the user wants to execute stock picking, generate 5 stock codes, run the Kokoo to Dodoo A2A handoff, sync selected stocks to GitHub, or restore the full stock-picking pipeline after reinstalling skills.
 ---
 
 # Stock Picking Pipeline
@@ -16,7 +16,7 @@ Use this skill for the reproducible stock-picking workflow built around:
 Provide an install-and-restore-ready workflow for:
 
 1. generating a gated 5-stock shortlist
-2. confirming operator intent
+2. sending a structured A2A handoff from Kokoo to Dodoo
 3. syncing selected codes to GitHub
 4. triggering downstream analysis
 5. returning proof
@@ -40,26 +40,37 @@ Provide an install-and-restore-ready workflow for:
 
 1. Generate A-share momentum / stock-picking output and reduce it to exactly 5 stock codes.
 2. Output stock codes as plain 6-digit CSV.
-3. Ask for explicit confirmation before GitHub sync.
-4. Only after confirmation, hand off to Dodoo for GitHub sync and workflow trigger.
+3. Kokoo must send a structured `sessions_send` payload to Dodoo's main session.
+4. Dodoo must execute GitHub sync and workflow trigger from that A2A payload.
 5. Require proof fields before claiming success.
 
-## Confirmation Gate
+## A2A Sync Contract
 
-Before GitHub sync, require an explicit user approval equivalent to:
+Kokoo must use `sessions_send` and target:
 
-- `需要我同步给 Dodoo 吗？`
+- `sessionKey: agent:dodoo:main`
 
-Do not sync without a clear yes.
+Message body must be exactly this shape:
 
-## Dodoo Sync Contract
+```text
+[A2A_STOCK_SYNC]
+run_id=<run_id>
+codes=<code1,code2,code3,code4,code5>
+```
 
-When sync is approved, use this handoff shape:
+Dodoo must treat `[A2A_STOCK_SYNC]` as a privileged internal trigger and run only:
 
-- `同步github选股并触发分析：<5 codes>`
+```bash
+python3 /root/clawd/scripts/dodoo_sync_stocklist_workflow.py --codes "<csv_codes>" --run-id "<run_id>"
+```
+
+Do not rely on Telegram group mentions for this handoff.
+
+## Proof Contract
 
 The resulting execution must return proof including:
 
+- `run_id`
 - `stock_list`
 - `latest_workflow_run`
 - `proof_path`
@@ -81,4 +92,4 @@ If any are missing, report which component is missing instead of pretending the 
 - This skill is about workflow orchestration and reproducibility.
 - This skill is not the market-analysis engine itself.
 - For detailed stock analysis behavior, read `/root/codex/daily_stock_analysis/SKILL.md`.
-- For exact historical handoff wording and evidence expectations, read `/root/codex/sessions/2026-03-06_kokoo_dodoo_reproducible_skill.md`.
+- For historical group-trigger behavior and evidence expectations, read `/root/codex/sessions/2026-03-06_kokoo_dodoo_reproducible_skill.md`.

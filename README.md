@@ -7,6 +7,7 @@ Reusable OpenClaw skill for restoring and running the A-share stock-picking work
 - The stock-picking flow already exists in pieces, but it was not packaged as a single reusable skill.
 - This skill turns the existing operator process into a stable install-and-restore workflow.
 - It keeps the orchestration layer separate from the market-analysis engine so the process can be restored without rebuilding everything from memory.
+- The current contract uses true agent-to-agent messaging (`sessions_send`) instead of Telegram group mention relays.
 
 ## HOW TO INSTALL
 
@@ -42,9 +43,22 @@ Natural language examples:
 ## WHAT IT RESTORES
 
 - 5-stock shortlist generation flow
-- confirmation gate before GitHub sync
-- Dodoo sync handoff contract
+- Kokoo -> Dodoo structured A2A handoff contract
+- Dodoo GitHub sync execution contract
 - proof requirements for completion
+
+## A2A Handshake
+
+This skill standardizes the internal handoff as:
+
+```text
+[A2A_STOCK_SYNC]
+run_id=<run_id>
+codes=<code1,code2,code3,code4,code5>
+```
+
+Kokoo must send it with `sessions_send` to `agent:dodoo:main`.
+Dodoo must consume that payload and run the GitHub sync script directly.
 
 ## Repository Layout
 
